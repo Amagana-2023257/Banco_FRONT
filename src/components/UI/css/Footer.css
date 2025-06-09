@@ -1,0 +1,12 @@
+.footer-section {
+  background: #171717;
+  color: #888;
+  font-size: 0.9rem;
+}
+.footer-section a {
+  color: #f5c518;
+  text-decoration: none;
+}
+.footer-section a:hover {
+  text-decoration: underline;
+}

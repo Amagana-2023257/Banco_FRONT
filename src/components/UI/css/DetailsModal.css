@@ -1,0 +1,76 @@
+/* DetailsModal.css */
+
+/* Ajuste general del modal */
+.modal-luxury .modal-content {
+  background-color: #1e1e1e; /* Fondo oscuro minimalista */
+  border: none;
+  border-radius: 0.5rem;
+}
+
+/* Header */
+.modal-luxury .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+}
+
+.modal-luxury .modal-title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f5c518; /* Dorado suave */
+}
+
+/* Body */
+.modal-luxury .modal-body {
+  color: #ddd;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.modal__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.modal__list li {
+  margin-bottom: 0.5rem;
+}
+
+.details-img {
+  max-width: 100%;
+  border-radius: 0.25rem;
+}
+
+/* Texto de amenidades */
+.text-gold {
+  color: #f5c518;
+  margin-bottom: 0.5rem;
+}
+
+/* Footer */
+.modal-luxury .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1.5rem;
+}
+
+.modal-luxury .modal-footer .btn {
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.modal-luxury .modal-footer .btn-outline-secondary {
+  color: #ddd;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-luxury .modal-footer .btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.modal-luxury .btn-gold,
+.modal-luxury .btn-gold:focus,
+.modal-luxury .btn-gold:hover {
+  background-color: #f5c518;
+  border-color: #f5c518;
+  color: #1e1e1e;
+}

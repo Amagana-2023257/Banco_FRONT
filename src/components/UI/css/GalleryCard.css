@@ -1,0 +1,53 @@
+/* GalleryCard.css */
+
+/* Contenedor de cada tarjeta */
+.gallery__item {
+  cursor: pointer;
+}
+
+/* Estilos base para hotel-card y event-card */
+.hotel-card,
+.event-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: #222;
+  transition: transform 0.3s ease;
+}
+
+.hotel-card:hover,
+.event-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Imagen */
+.hotel-card__image,
+.event-card__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Overlay de información */
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(0deg, rgba(0,0,0,0.7), transparent);
+  color: #fff;
+}
+
+.overlay__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.overlay__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}

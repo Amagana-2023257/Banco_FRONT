@@ -1,0 +1,24 @@
+.testimonials-section h2 {
+  font-weight: 600;
+  position: relative;
+}
+.testimonials-section h2::after {
+  content: '';
+  display: block;
+  width: 4rem;
+  height: 3px;
+  background: #f5c518;
+  margin: 0.5rem auto 1.5rem;
+}
+
+.testimonial-card {
+  background: #2a2a2a;
+  border-left: 0.25rem solid #f5c518;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  color: #e0e0e0;
+  transition: transform 0.3s ease;
+}
+.testimonial-card:hover {
+  transform: scale(1.02);
+}
