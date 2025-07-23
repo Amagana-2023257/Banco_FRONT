@@ -1,185 +1,233 @@
 // src/components/nav/Sidebar.jsx
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { NavLink, useLocation } from 'react-router-dom';
-import { ListGroup, Collapse } from 'react-bootstrap';
-import { useUserDetails } from '../../shared/hooks/useUserDetails';
+import React, { useState, useMemo, useCallback } from "react";
+import PropTypes from "prop-types";
+import { NavLink, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useUserDetails } from "../../shared/hooks/useUserDetails";
+import "./Sidebar.css";
 
-const MENU = [
-  { path: '/dashboard', label: 'Inicio', roles: ['ALL'] },
+/* ------------------ Roles ------------------ */
+export const ROLES = {
+  ADMIN_GLOBAL: "ADMIN_GLOBAL",
+  GERENTE_SUCURSAL: "GERENTE_SUCURSAL",
+  CAJERO: "CAJERO",
+  CLIENTE: "CLIENTE",
+};
+
+/* ------------------ Helpers ------------------ */
+const can = (role, allowed) => allowed.includes("ALL") || allowed.includes(role);
+
+/* ------------------ Menús ------------------ */
+const MENU_ROOT = [
+  { path: "/dashboard", label: "Inicio", icon: "bi-house-door", roles: ["ALL"] },
 ];
 
 const USERS_MENU = [
-  { path: '/dashboard/users',       label: 'Listado',   key: 'list'   },
-  { path: '/dashboard/users/create', label: 'Crear',     key: 'create' },
+  {
+    path: "/dashboard/users",
+    label: "Usuarios",
+    icon: "bi-people",
+    roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL],
+    children: [
+      { path: "/dashboard/users", label: "Listado", roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL] },
+      { path: "/dashboard/users/create", label: "Crear", roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL] },
+    ],
+  },
 ];
 
 const ACCOUNTS_MENU = [
-  { path: '/dashboard/accounts',        label: 'Listado', key: 'list'   },
-  { path: '/dashboard/accounts/create', label: 'Crear',   key: 'create' },
+  {
+    path: "/dashboard/accounts",
+    label: "Cuentas",
+    icon: "bi-wallet2",
+    roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL],
+    children: [
+      { path: "/dashboard/accounts", label: "Listado", roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL] },
+      { path: "/dashboard/accounts/create", label: "Crear", roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL] },
+    ],
+  },
 ];
 
-const TRANSACTIONS_MENU = [
-  { path: '/dashboard/transactions',            label: 'Listado',      key: 'list'     },
-  { path: '/dashboard/transactions/deposit',    label: 'Depósito',     key: 'deposit'  },
-  { path: '/dashboard/transactions/transfer',   label: 'Transferencia',key: 'transfer' },
-  { path: '/dashboard/transactions/purchase',   label: 'Compra',       key: 'purchase' },
-  { path: '/dashboard/transactions/credit',     label: 'Crédito',      key: 'credit'   },
+const TX_MENU = [
+  {
+    path: "/dashboard/transactions",
+    label: "Transacciones",
+    icon: "bi-cash-stack",
+    roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL, ROLES.CAJERO, ROLES.CLIENTE],
+    children: [
+      { path: "/dashboard/transactions", label: "Listado", roles: [ROLES.ADMIN_GLOBAL, ROLES.GERENTE_SUCURSAL, ROLES.CAJERO] },
+      { path: "/dashboard/transactions/deposit", label: "Depósito", roles: [ROLES.ADMIN_GLOBAL, ROLES.CAJERO, ROLES.CLIENTE] },
+      { path: "/dashboard/transactions/transfer", label: "Transferencia", roles: [ROLES.ADMIN_GLOBAL, ROLES.CLIENTE] },
+      { path: "/dashboard/transactions/purchase", label: "Compra", roles: [ROLES.ADMIN_GLOBAL, ROLES.CLIENTE] },
+      { path: "/dashboard/transactions/credit", label: "Crédito", roles: [ROLES.ADMIN_GLOBAL, ROLES.CAJERO] },
+    ],
+  },
 ];
 
-export const Sidebar = ({ onLinkClick }) => {
-  const { role } = useUserDetails();
+const GROUPS = [...USERS_MENU, ...ACCOUNTS_MENU, ...TX_MENU];
+
+/* ------------------ Animations ------------------ */
+const listVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: {
+    opacity: 1,
+    height: "auto",
+    transition: { duration: 0.28, ease: "easeOut" },
+  },
+  exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
+};
+
+const itemVariants = {
+  initial: { opacity: 0, x: -8 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.2 } },
+};
+
+/* ------------------ Sidebar ------------------ */
+export const Sidebar = ({
+  onLinkClick,
+  collapsed = false,
+  onToggle,
+  inOffcanvas = false, // IMPORTANTE para móvil
+}) => {
+  const { role = ROLES.CLIENTE } = useUserDetails();
   const location = useLocation();
 
-  const [openUsers, setOpenUsers] = useState(location.pathname.startsWith('/dashboard/users'));
-  const [openAccounts, setOpenAccounts] = useState(location.pathname.startsWith('/dashboard/accounts'));
-  const [openTx, setOpenTx] = useState(location.pathname.startsWith('/dashboard/transactions'));
+  const rootItems = useMemo(() => MENU_ROOT.filter((m) => can(role, m.roles)), [role]);
+  const groupItems = useMemo(
+    () =>
+      GROUPS.map((g) => ({
+        ...g,
+        children: g.children?.filter((c) => can(role, c.roles)) ?? [],
+      })).filter((g) => can(role, g.roles) && g.children.length > 0),
+    [role]
+  );
 
-  // filter helpers
-  const showUsers    = ['ADMIN_GLOBAL','GERENTE_SUCURSAL'].includes(role);
-  const showAccounts = ['ADMIN_GLOBAL','GERENTE_SUCURSAL'].includes(role);
-  const showTxList   = ['ADMIN_GLOBAL','GERENTE_SUCURSAL','CAJERO'].includes(role);
+  const defaultOpen = useCallback(
+    (base) => location.pathname.startsWith(base),
+    [location.pathname]
+  );
 
-  const userOps = USERS_MENU.filter(op => {
-    if (op.key === 'list')   return showUsers;
-    return false;
-  });
+  const [open, setOpen] = useState(() =>
+    groupItems.reduce((acc, g) => ({ ...acc, [g.path]: defaultOpen(g.path) }), {})
+  );
 
-  const acctOps = ACCOUNTS_MENU.filter(op => {
-    if (op.key === 'list')   return showAccounts;
-    if (op.key === 'create') return ['ADMIN_GLOBAL','GERENTE_SUCURSAL'].includes(role);
-    return false;
-  });
+  const toggle = (key) => setOpen((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const txOps = TRANSACTIONS_MENU.filter(op => {
-    if (op.key === 'list')     return showTxList;
-    if (op.key === 'deposit')  return ['ADMIN_GLOBAL','CAJERO','CLIENTE'].includes(role);
-    if (op.key === 'transfer'|| op.key === 'purchase') return role === 'ADMIN_GLOBAL','CLIENTE';
-    if (op.key === 'credit')   return role === 'ADMIN_GLOBAL','CAJERO';
-    return false;
-  });
+  const asideClass = [
+    "sidebar",
+    collapsed && "sidebar--collapsed",
+    inOffcanvas && "sidebar--in-offcanvas",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="bg-white border-end vh-100" style={{ width: 220 }}>
-      <ListGroup variant="flush">
+    <aside className={asideClass} aria-label="Menú lateral">
+      <div className="sidebar__inner">
+        {typeof onToggle === "function" && !inOffcanvas && (
+          <button
+            className="sidebar__collapse-btn"
+            onClick={onToggle}
+            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+          >
+            <i className="bi bi-chevron-double-left" />
+          </button>
+        )}
 
-        {MENU.map(item => (
-          <ListGroup.Item key={item.path} className="p-0 border-0">
-            <NavLink
+        <nav className="sidebar__nav">
+          {rootItems.map((item) => (
+            <SidebarLink
+              key={item.path}
               to={item.path}
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `d-block py-2 px-3 text-decoration-none ${
-                  isActive ? 'bg-primary text-white' : 'text-dark'
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          </ListGroup.Item>
-        ))}
+              icon={item.icon}
+              label={item.label}
+              collapsed={collapsed}
+              onLinkClick={onLinkClick}
+            />
+          ))}
 
-        {/* Usuarios */}
-        {showUsers && (
-          <ListGroup.Item className="p-0 border-0">
-            <button
-              className="btn btn-toggle align-items-center rounded w-100 text-start px-3"
-              onClick={() => setOpenUsers(!openUsers)}
-              aria-expanded={openUsers}
-            >
-              Usuarios
-            </button>
-            <Collapse in={openUsers}>
-              <ListGroup variant="flush" className="ms-3">
-                {userOps.map(op => (
-                  <ListGroup.Item key={op.path} className="p-0 border-0">
-                    <NavLink
-                      to={op.path}
-                      onClick={onLinkClick}
-                      className={({ isActive }) =>
-                        `d-block py-2 px-3 text-decoration-none ${
-                          isActive ? 'bg-primary text-white' : 'text-dark'
-                        }`
-                      }
-                    >
-                      {op.label}
-                    </NavLink>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Collapse>
-          </ListGroup.Item>
-        )}
+          {groupItems.map((grp) => (
+            <div className="sidebar__group" key={grp.path}>
+              <button
+                className="sidebar__group-toggle"
+                onClick={() => toggle(grp.path)}
+                aria-expanded={!!open[grp.path]}
+                aria-controls={`submenu-${grp.path}`}
+              >
+                <i className={`bi ${grp.icon} me-2`} />
+                {!collapsed && <span>{grp.label}</span>}
+                <i
+                  className={`bi ms-auto ${
+                    open[grp.path] ? "bi-caret-up-fill" : "bi-caret-down-fill"
+                  }`}
+                />
+              </button>
 
-        {/* Cuentas */}
-        {showAccounts && (
-          <ListGroup.Item className="p-0 border-0">
-            <button
-              className="btn btn-toggle align-items-center rounded w-100 text-start px-3"
-              onClick={() => setOpenAccounts(!openAccounts)}
-              aria-expanded={openAccounts}
-            >
-              Cuentas
-            </button>
-            <Collapse in={openAccounts}>
-              <ListGroup variant="flush" className="ms-3">
-                {acctOps.map(op => (
-                  <ListGroup.Item key={op.path} className="p-0 border-0">
-                    <NavLink
-                      to={op.path}
-                      onClick={onLinkClick}
-                      className={({ isActive }) =>
-                        `d-block py-2 px-3 text-decoration-none ${
-                          isActive ? 'bg-primary text-white' : 'text-dark'
-                        }`
-                      }
-                    >
-                      {op.label}
-                    </NavLink>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Collapse>
-          </ListGroup.Item>
-        )}
-
-        {/* Transacciones */}
-        {showTxList && (
-          <ListGroup.Item className="p-0 border-0">
-            <button
-              className="btn btn-toggle align-items-center rounded w-100 text-start px-3"
-              onClick={() => setOpenTx(!openTx)}
-              aria-expanded={openTx}
-            >
-              Transacciones
-            </button>
-            <Collapse in={openTx}>
-              <ListGroup variant="flush" className="ms-3">
-                {txOps.map(op => (
-                  <ListGroup.Item key={op.path} className="p-0 border-0">
-                    <NavLink
-                      to={op.path}
-                      onClick={onLinkClick}
-                      className={({ isActive }) =>
-                        `d-block py-2 px-3 text-decoration-none ${
-                          isActive ? 'bg-primary text-white' : 'text-dark'
-                        }`
-                      }
-                    >
-                      {op.label}
-                    </NavLink>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Collapse>
-          </ListGroup.Item>
-        )}
-
-      </ListGroup>
-    </div>
+              <AnimatePresence initial={false}>
+                {open[grp.path] && (
+                  <motion.ul
+                    id={`submenu-${grp.path}`}
+                    className="sidebar__submenu"
+                    variants={listVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    {grp.children.map((child) => (
+                      <motion.li key={child.path} variants={itemVariants}>
+                        <SidebarLink
+                          to={child.path}
+                          label={child.label}
+                          collapsed={collapsed}
+                          depth={1}
+                          onLinkClick={onLinkClick}
+                        />
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </nav>
+      </div>
+    </aside>
   );
 };
 
+const SidebarLink = ({ to, icon, label, depth = 0, collapsed, onLinkClick }) => (
+  <NavLink
+    to={to}
+    end
+    onClick={onLinkClick}
+    className={({ isActive }) =>
+      [
+        "sidebar__link",
+        isActive && "is-active",
+        depth > 0 && "sidebar__link--child",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    }
+  >
+    {icon && <i className={`bi ${icon} me-2`} />}
+    {!collapsed && <span className="sidebar__label">{label}</span>}
+    <span className="sidebar__ripple" aria-hidden="true" />
+  </NavLink>
+);
+
 Sidebar.propTypes = {
+  onLinkClick: PropTypes.func,
+  collapsed: PropTypes.bool,
+  onToggle: PropTypes.func,
+  inOffcanvas: PropTypes.bool,
+};
+
+SidebarLink.propTypes = {
+  to: PropTypes.string.isRequired,
+  icon: PropTypes.string,
+  label: PropTypes.string.isRequired,
+  depth: PropTypes.number,
+  collapsed: PropTypes.bool,
   onLinkClick: PropTypes.func,
 };

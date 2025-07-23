@@ -3,7 +3,7 @@ import axios from 'axios';
 import { logout } from '../shared/hooks/useLogout';
 
 const apiClient = axios.create({
-  baseURL: 'https://banco-api-six.vercel.app/Banca-Kinal/v1',
+  baseURL: 'https://banco-api-opal.vercel.app/Banca-Kinal/v1',
   timeout: 5000,
 });
 

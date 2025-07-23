@@ -1,0 +1,165 @@
+/* ===== Desktop base ===== */
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  border-right: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 0 24px -8px rgba(0,0,0,.08);
+  transition: width .28s ease;
+  position: relative;
+  z-index: 100;
+}
+
+.sidebar--collapsed { width: 72px; }
+
+.sidebar__inner {
+  height: 100%;
+  overflow-y: auto;
+  padding: .75rem .5rem;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: none;
+}
+.sidebar__inner::-webkit-scrollbar { width:0; height:0; }
+
+/* Collapse btn */
+.sidebar__collapse-btn {
+  background: transparent;
+  border: 0;
+  color: #6c757d;
+  width: 100%;
+  text-align: right;
+  font-size: .9rem;
+  padding: 0 .25rem .5rem;
+  margin-bottom: .5rem;
+  transition: color .2s;
+}
+.sidebar__collapse-btn:hover { color: #003d7a; }
+
+/* Nav */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+/* Link */
+.sidebar__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .55rem .9rem;
+  margin: .1rem 0;
+  text-decoration: none !important;
+  color: #212529;
+  border-radius: .55rem;
+  overflow: hidden;
+  transition: background .16s, color .16s;
+  font-size: .9rem;
+}
+.sidebar__link i {
+  font-size: 1.05rem;
+  min-width: 20px;
+  text-align: center;
+}
+.sidebar__link.is-active {
+  background: rgba(0,83,155,.12);
+  color: #00539b;
+  font-weight: 600;
+}
+.sidebar__link:hover {
+  background: rgba(0,83,155,.08);
+  color: #00539b;
+}
+
+/* Ripple */
+.sidebar__ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: rgba(0,83,155,.18);
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform .4s, opacity .7s;
+}
+.sidebar__link:active .sidebar__ripple {
+  transform: scale(1);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Child */
+.sidebar__link--child {
+  padding-left: 2.4rem;
+  font-size: .85rem;
+}
+
+/* Group */
+.sidebar__group { margin-top: .4rem; }
+
+.sidebar__group-toggle {
+  width: 100%;
+  padding: .55rem .9rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: #212529;
+  border-radius: .55rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .9rem;
+  transition: background .16s, color .16s;
+}
+.sidebar__group-toggle:hover {
+  background: rgba(0,83,155,.05);
+  color: #00539b;
+}
+
+.sidebar__submenu {
+  list-style: none;
+  padding-left: 0;
+  margin: .2rem 0 .4rem 0;
+  border-left: 2px solid rgba(0,83,155,.15);
+  overflow: hidden;
+}
+
+/* Collapsed tweaks */
+.sidebar--collapsed .sidebar__group-toggle span,
+.sidebar--collapsed .sidebar__link .sidebar__label { display: none; }
+.sidebar--collapsed .sidebar__group-toggle i:last-child { display: none; }
+.sidebar--collapsed .sidebar__group-toggle { justify-content: center; }
+.sidebar--collapsed .sidebar__link { justify-content: center; padding: .6rem .2rem; }
+.sidebar--collapsed .sidebar__link--child { padding-left: .65rem; }
+
+/* ===== Mobile ===== */
+@media (max-width: 991.98px) {
+  /* Sidebar fija (si la usas sin Offcanvas) */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -260px;
+    height: 100vh;
+    width: 240px;
+    z-index: 1050;
+  }
+  .sidebar--open { left: 0; }
+
+  /* Sidebar dentro del Offcanvas de Bootstrap */
+  .sidebar--in-offcanvas {
+    position: static !important;
+    left: auto !important;
+    height: auto !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border-right: 0 !important;
+  }
+  .sidebar--in-offcanvas .sidebar__inner {
+    height: auto;
+    overflow: visible;
+    padding: 0;
+  }
+}

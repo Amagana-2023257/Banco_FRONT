@@ -1,0 +1,146 @@
+/* ===== Reset scrollbars visuales (opcional) ===== */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  -ms-overflow-style: none;      /* IE/Edge */
+  scrollbar-width: none;         /* Firefox */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ===== Layout general ===== */
+.auth-page {
+  min-height: 100vh;
+}
+.auth-row {
+  min-height: 100vh; /* puede crecer +, sin limitar */
+}
+
+/* ===== Columnas ===== */
+.auth-left {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+.auth-right {
+  position: relative;
+  overflow: visible;
+  min-height: 100vh;
+}
+
+/* ===== Fondos ===== */
+.auth-left-bg,
+.auth-right-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: scale(1.05);
+  z-index: 0;
+}
+
+.auth-left-bg {
+  filter: blur(6px) brightness(0.75);
+}
+.auth-right-bg {
+  background-position: center right;
+  filter: blur(10px) brightness(0.85);
+}
+
+/* Overlays */
+.auth-left-overlay,
+.auth-right-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.auth-left-overlay {
+  background: rgba(0, 0, 0, 0.45);
+}
+.auth-right-overlay {
+  background: rgba(255, 255, 255, 0.18);
+}
+[data-bs-theme="dark"] .auth-right-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Frases */
+.phrase-rotator {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+.phrase-title {
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* Card */
+.auth-card {
+  padding: 2rem 2.2rem;
+  z-index: 2;
+}
+.glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
+  animation: pop 0.55s ease-out;
+}
+@keyframes pop {
+  0% { transform: scale(.96) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+[data-bs-theme="dark"] .glass {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.auth-logo {
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.25));
+}
+
+/* Inputs focus glow (opcional) */
+.form-control:focus {
+  box-shadow: 0 0 0 .2rem rgba(0,83,155,.25);
+  border-color: rgba(0,83,155,.5);
+}
+
+/* Password hints styling (si usas el componente) */
+.password-hints {
+  list-style: none;
+  padding-left: 0;
+  margin: .5rem 0 0;
+}
+.password-hints li {
+  display: flex;
+  align-items: center;
+  font-size: .75rem;
+  margin-bottom: 2px;
+}
+.password-hints li.ok { color: #198754; }
+.password-hints li.nok { color: #6c757d; }
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .auth-left {
+    display: none !important;
+  }
+  .auth-right {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .auth-card {
+    padding: 1.5rem 1.6rem;
+  }
+}

@@ -1,8 +1,9 @@
 // src/components/Layout/Content.jsx
 import React from 'react';
-import { Routes, Route, useParams } from 'react-router-dom';
+import { Routes, Route, useParams, Navigate } from 'react-router-dom';
 import { DefaultDashboard } from './DefaultDashboard';
 import { ProtectedRoute } from '../routes/ProtectedRoute';
+import { useUserDetails } from '../../shared/hooks/useUserDetails';
 
 // User management
 import { UserList } from '../users/UserList';
@@ -28,14 +29,14 @@ import { CreditForm } from '../transaction/CreditForm';
 import { UpdateTransactionForm } from '../transaction/UpdateTransactionForm';
 import { DeleteTransaction } from '../transaction/DeleteTransaction';
 
-// Wrappers for routes with params
+// ===== Wrappers con params + verificación especial para CLIENTE =====
 const EditUser = () => {
   const { id } = useParams();
   return <UpdateUserForm userId={id} initialData={{}} />;
 };
 const DeactivateUser = () => {
   const { id } = useParams();
-  return <DeactivateUserButton userId={id} onDeactivated={() => { /* refresh list */ }} />;
+  return <DeactivateUserButton userId={id} onDeactivated={() => {}} />;
 };
 
 const AccountById = () => {
@@ -44,31 +45,45 @@ const AccountById = () => {
 };
 const EditAccount = () => {
   const { id } = useParams();
-  return <UpdateAccount />;
+  return <UpdateAccount accountId={id} />;
 };
 const DeactivateAcct = () => {
   const { id } = useParams();
-  return <DeactivateAccount />;
+  return <DeactivateAccount accountId={id} />;
 };
 
 const TxnById = () => {
   const { id } = useParams();
-  return <TransactionDetails />;
+  return <TransactionDetails txId={id} />;
 };
 const EditTxn = () => {
   const { id } = useParams();
-  return <UpdateTransactionForm />;
+  return <UpdateTransactionForm txId={id} />;
 };
 const DeleteTxn = () => {
   const { id } = useParams();
-  return <DeleteTransaction />;
+  return <DeleteTransaction txId={id} />;
+};
+
+/**
+ * Solo CLIENTE viendo su propio recurso (usuario).
+ * Si es CLIENTE y el :id no es el suyo, redirige.
+ * Para otros roles, deja pasar.
+ */
+const ClientOwnUserGuard = ({ children }) => {
+  const { id: routeId } = useParams();
+  const { id: meId, role } = useUserDetails();
+  if (role === 'CLIENTE' && routeId !== meId) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
 };
 
 export const Content = () => (
   <main className="content-container flex-grow-1 p-4">
     <Routes>
 
-      {/* Default Dashboard */}
+      {/* Dashboard */}
       <Route
         path=""
         element={
@@ -91,7 +106,9 @@ export const Content = () => (
         path="users/:id"
         element={
           <ProtectedRoute allowedRoles={['ADMIN_GLOBAL','GERENTE_SUCURSAL','CAJERO','CLIENTE']}>
-            <UserDetails />
+            <ClientOwnUserGuard>
+              <UserDetails />
+            </ClientOwnUserGuard>
           </ProtectedRoute>
         }
       />

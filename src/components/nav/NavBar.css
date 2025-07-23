@@ -1,0 +1,46 @@
+.nav-wrapper {
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  transition: box-shadow .25s ease, background-color .25s ease;
+}
+.nav-wrapper--scrolled {
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  background-color: rgba(255,255,255,0.7);
+}
+[data-bs-theme="dark"] .nav-wrapper--scrolled {
+  background-color: rgba(22,22,22,0.6);
+}
+
+.nav-glass {
+  background: transparent !important;
+}
+
+.brand-text { color: var(--bs-body-color); }
+
+.nav-link {
+  color: var(--bs-body-color) !important;
+  opacity: .8;
+  transition: opacity .2s ease;
+}
+.nav-link:hover { opacity: 1; }
+.active-link {
+  opacity: 1 !important;
+  position: relative;
+}
+.active-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -4px;
+  height: 2px;
+  background: var(--bs-primary);
+  border-radius: 2px;
+}
+
+/* Offcanvas mobile */
+.mobile-offcanvas .offcanvas-body {
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(12px);
+}
+[data-bs-theme="dark"] .mobile-offcanvas .offcanvas-body {
+  background: rgba(0,0,0,.6);
+}

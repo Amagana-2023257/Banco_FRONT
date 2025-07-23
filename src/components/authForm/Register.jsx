@@ -1,7 +1,6 @@
-// src/components/authForm/Register.jsx
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { Input } from '../UI/Input';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { Input } from "../UI/Input";
 import {
   validateEmail,
   validatePassword,
@@ -13,102 +12,104 @@ import {
   validatePasswordMessage,
   validatePhoneMessage,
   validatePasswordConfirmMessage,
-} from '../../shared/validators';
-import { useRegister } from '../../shared/hooks/useRegister';
+} from "../../shared/validators";
+import { useRegister } from "../../shared/hooks/useRegister";
+import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+
+const fieldFade = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.04 } }),
+};
 
 export const Register = ({ switchAuthHandler }) => {
-  const { register, isLoading } = useRegister();
+  const { register: doRegister, isLoading } = useRegister();
   const [form, setForm] = useState({
-    name: { value: '', isValid: false, showError: false },
-    surname: { value: '', isValid: false, showError: false },
-    username: { value: '', isValid: false, showError: false },
-    email: { value: '', isValid: false, showError: false },
-    phone: { value: '', isValid: false, showError: false },
-    password: { value: '', isValid: false, showError: false },
-    passwordConf: { value: '', isValid: false, showError: false },
-    dpi: { value: '', isValid: false, showError: false },
-    address: { value: '', isValid: false, showError: false },
-    jobName: { value: '', isValid: false, showError: false },
-    monthlyIncome: { value: '', isValid: false, showError: false },
+    name: { value: "", isValid: false, showError: false },
+    surname: { value: "", isValid: false, showError: false },
+    username: { value: "", isValid: false, showError: false },
+    email: { value: "", isValid: false, showError: false },
+    phone: { value: "", isValid: false, showError: false },
+    password: { value: "", isValid: false, showError: false },
+    passwordConf: { value: "", isValid: false, showError: false },
+    dpi: { value: "", isValid: false, showError: false },
+    address: { value: "", isValid: false, showError: false },
+    jobName: { value: "", isValid: false, showError: false },
+    monthlyIncome: { value: "", isValid: false, showError: false },
   });
 
   const handleChange = (val, field) =>
-    setForm(prev => ({ ...prev, [field]: { ...prev[field], value: val } }));
+    setForm((prev) => ({ ...prev, [field]: { ...prev[field], value: val } }));
 
   const handleBlur = (val, field) => {
     let valid = false;
     switch (field) {
-      case 'name':
-      case 'surname':
-        valid = val.trim().length > 0;
+      case "name":
+      case "surname":
+        valid = val.trim().length > 0 && /^[A-Za-zÁÉÍÓÚáéíóúñÑ' ]+$/.test(val);
         break;
-      case 'username':
+      case "username":
         valid = validateUsername(val);
         break;
-      case 'email':
+      case "email":
         valid = validateEmail(val);
         break;
-      case 'phone':
+      case "phone":
         valid = validatePhone(val);
         break;
-      case 'password':
-        valid = validatePassword(val);
+      case "password":
+        valid = validatePassword(val) && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val);
         break;
-      case 'passwordConf':
+      case "passwordConf":
         valid = validatePasswordConfirm(form.password.value, val);
         break;
-      case 'dpi':
+      case "dpi":
         valid = /^\d{13}$/.test(val);
         break;
-      case 'address':
-      case 'jobName':
+      case "address":
+      case "jobName":
         valid = val.trim().length > 0;
         break;
-      case 'monthlyIncome':
+      case "monthlyIncome":
         valid = Number(val) > 100;
         break;
       default:
         valid = true;
     }
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       [field]: { ...prev[field], isValid: valid, showError: !valid },
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register({
-      name: form.name.value.trim(),
-      surname: form.surname.value.trim(),
-      username: form.username.value.trim(),
-      email: form.email.value.trim().toLowerCase(),
-      phone: form.phone.value.trim(),
-      password: form.password.value,
-      dpi: form.dpi.value.trim(),
-      address: form.address.value.trim(),
-      jobName: form.jobName.value.trim(),
-      monthlyIncome: Number(form.monthlyIncome.value),
-    });
+    try {
+      await doRegister({
+        name: form.name.value.trim(),
+        surname: form.surname.value.trim(),
+        username: form.username.value.trim(),
+        email: form.email.value.trim().toLowerCase(),
+        phone: form.phone.value.trim(),
+        password: form.password.value,
+        dpi: form.dpi.value.trim(),
+        address: form.address.value.trim(),
+        jobName: form.jobName.value.trim(),
+        monthlyIncome: Number(form.monthlyIncome.value),
+      });
+      toast.success("Cuenta creada. Revisa tu correo para activarla.");
+    } catch (err) {
+      toast.error(err?.message || "Error al registrar");
+    }
   };
 
-  const allValid =
-    form.name.isValid &&
-    form.surname.isValid &&
-    form.username.isValid &&
-    form.email.isValid &&
-    form.phone.isValid &&
-    form.password.isValid &&
-    form.passwordConf.isValid &&
-    form.dpi.isValid &&
-    form.address.isValid &&
-    form.jobName.isValid &&
-    form.monthlyIncome.isValid;
+  const allValid = Object.values(form).every((f) => f.isValid);
+  const disabled = !allValid || isLoading;
 
   return (
-    <form onSubmit={handleSubmit}>
+    <motion.form onSubmit={handleSubmit} initial="hidden" animate="visible" variants={{}}>
       <div className="row g-3">
-        <div className="col-12 col-md-6">
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={0}>
           <Input
             field="name"
             label="Nombre"
@@ -117,11 +118,12 @@ export const Register = ({ switchAuthHandler }) => {
             onChangeHandler={handleChange}
             onBlurHandler={handleBlur}
             showErrorMessage={form.name.showError}
-            validationMessage="El nombre es obligatorio."
+            validationMessage="El nombre es obligatorio y solo letras."
             inputClass="form-control"
+            autoComplete="given-name"
           />
-        </div>
-        <div className="col-12 col-md-6">
+        </motion.div>
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={1}>
           <Input
             field="surname"
             label="Apellido"
@@ -130,13 +132,14 @@ export const Register = ({ switchAuthHandler }) => {
             onChangeHandler={handleChange}
             onBlurHandler={handleBlur}
             showErrorMessage={form.surname.showError}
-            validationMessage="El apellido es obligatorio."
+            validationMessage="El apellido es obligatorio y solo letras."
             inputClass="form-control"
+            autoComplete="family-name"
           />
-        </div>
+        </motion.div>
       </div>
 
-      <div className="mt-3">
+      <motion.div className="mt-3" variants={fieldFade} custom={2}>
         <Input
           field="username"
           label="Usuario"
@@ -147,10 +150,11 @@ export const Register = ({ switchAuthHandler }) => {
           showErrorMessage={form.username.showError}
           validationMessage={validateUsernameMessage}
           inputClass="form-control"
+          autoComplete="username"
         />
-      </div>
+      </motion.div>
 
-      <div className="mt-3">
+      <motion.div className="mt-3" variants={fieldFade} custom={3}>
         <Input
           field="email"
           label="Correo Electrónico"
@@ -161,10 +165,11 @@ export const Register = ({ switchAuthHandler }) => {
           showErrorMessage={form.email.showError}
           validationMessage={validateEmailMessage}
           inputClass="form-control"
+          autoComplete="email"
         />
-      </div>
+      </motion.div>
 
-      <div className="mt-3">
+      <motion.div className="mt-3" variants={fieldFade} custom={4}>
         <Input
           field="phone"
           label="Teléfono"
@@ -175,11 +180,12 @@ export const Register = ({ switchAuthHandler }) => {
           showErrorMessage={form.phone.showError}
           validationMessage={validatePhoneMessage}
           inputClass="form-control"
+          autoComplete="tel"
         />
-      </div>
+      </motion.div>
 
       <div className="row g-3 mt-3">
-        <div className="col-12 col-md-6">
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={5}>
           <Input
             field="password"
             label="Contraseña"
@@ -190,9 +196,11 @@ export const Register = ({ switchAuthHandler }) => {
             showErrorMessage={form.password.showError}
             validationMessage={validatePasswordMessage}
             inputClass="form-control"
+            autoComplete="new-password"
           />
-        </div>
-        <div className="col-12 col-md-6">
+          <PasswordHints value={form.password.value} />
+        </motion.div>
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={6}>
           <Input
             field="passwordConf"
             label="Confirmar Contraseña"
@@ -203,12 +211,13 @@ export const Register = ({ switchAuthHandler }) => {
             showErrorMessage={form.passwordConf.showError}
             validationMessage={validatePasswordConfirmMessage}
             inputClass="form-control"
+            autoComplete="new-password"
           />
-        </div>
+        </motion.div>
       </div>
 
       <div className="row g-3 mt-3">
-        <div className="col-12 col-md-6">
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={7}>
           <Input
             field="dpi"
             label="DPI"
@@ -219,9 +228,10 @@ export const Register = ({ switchAuthHandler }) => {
             showErrorMessage={form.dpi.showError}
             validationMessage="El DPI debe tener 13 dígitos."
             inputClass="form-control"
+            inputMode="numeric"
           />
-        </div>
-        <div className="col-12 col-md-6">
+        </motion.div>
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={8}>
           <Input
             field="address"
             label="Dirección"
@@ -232,12 +242,13 @@ export const Register = ({ switchAuthHandler }) => {
             showErrorMessage={form.address.showError}
             validationMessage="La dirección es obligatoria."
             inputClass="form-control"
+            autoComplete="street-address"
           />
-        </div>
+        </motion.div>
       </div>
 
       <div className="row g-3 mt-3">
-        <div className="col-12 col-md-6">
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={9}>
           <Input
             field="jobName"
             label="Trabajo"
@@ -249,8 +260,8 @@ export const Register = ({ switchAuthHandler }) => {
             validationMessage="El trabajo es requerido."
             inputClass="form-control"
           />
-        </div>
-        <div className="col-12 col-md-6">
+        </motion.div>
+        <motion.div className="col-12 col-md-6" variants={fieldFade} custom={10}>
           <Input
             field="monthlyIncome"
             label="Ingreso Mensual"
@@ -262,23 +273,44 @@ export const Register = ({ switchAuthHandler }) => {
             showErrorMessage={form.monthlyIncome.showError}
             validationMessage="Debe ser mayor a Q100."
             inputClass="form-control"
+            inputMode="decimal"
           />
-        </div>
+        </motion.div>
       </div>
 
-      <button
+      <motion.button
         type="submit"
-        disabled={!allValid || isLoading}
-        className={`btn btn-primary w-100 mt-4${(!allValid || isLoading) ? ' disabled' : ''}`}
+        disabled={disabled}
+        className="btn btn-primary w-100 mt-4"
+        variants={fieldFade}
+        custom={11}
       >
-        {isLoading ? 'Registrando...' : 'Crear Cuenta'}
-      </button>
-
-     
-    </form>
+        {isLoading ? "Registrando..." : "Crear Cuenta"}
+      </motion.button>
+    </motion.form>
   );
 };
 
 Register.propTypes = {
   switchAuthHandler: PropTypes.func.isRequired,
+};
+
+// Indicador de fuerza de contraseña (simple)
+const PasswordHints = ({ value }) => {
+  const rules = [
+    { label: "8+ caracteres", test: (v) => v.length >= 8 },
+    { label: "Una mayúscula", test: (v) => /[A-Z]/.test(v) },
+    { label: "Un número", test: (v) => /\d/.test(v) },
+    { label: "Un carácter especial", test: (v) => /[^A-Za-z0-9]/.test(v) },
+  ];
+  return (
+    <ul className="password-hints small mt-2">
+      {rules.map((r) => (
+        <li key={r.label} className={r.test(value) ? "ok" : "nok"}>
+          <i className={r.test(value) ? "bi bi-check-circle-fill me-1" : "bi bi-dot me-1"}></i>
+          {r.label}
+        </li>
+      ))}
+    </ul>
+  );
 };
